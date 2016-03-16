@@ -4,3 +4,4 @@ editor_acl.xml
 local.conf
 resource-cache
 logs
+settings.xml
