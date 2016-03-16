@@ -1,4 +1,4 @@
-# Limitless MTA
+# Limitmess MTA
 
 Developed by Timon Sliepenbeek <timonsliepenbeek@gmail.com>
 
