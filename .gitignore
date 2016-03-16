@@ -1,1 +1,6 @@
 resources/*.zip
+editor.conf
+editor_acl.xml
+local.conf
+resource-cache
+logs
