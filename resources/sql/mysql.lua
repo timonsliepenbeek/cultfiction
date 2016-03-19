@@ -30,9 +30,9 @@ local function connect( )
 	local db = get( "database" ) or "mta"
 	local port = get( "port" ) or 3306
 	local socket = get( "socket" ) or nil
-	
+
 	-- connect
-	connection = mysql_connect ( server, user, password, db, port, socket )
+	connection = dbConnect( "mysql", "dbname=" .. db .. ";host=" .. server .. ";port=" .. port, user, password )
 	if connection then
 		if user == "root" then
 			setTimer( outputDebugString, 100, 1, "Connecting to your MySQL as 'root' is strongly discouraged.", 2 )
@@ -45,13 +45,13 @@ local function connect( )
 end
 
 local function disconnect( )
-	if connection and mysql_ping( connection ) then
-		mysql_close( connection )
+	if connection then
+		destroyElement( connection )
 	end
 end
 
 local function checkConnection( )
-	if not connection or not mysql_ping( connection ) then
+	if not connection then
 		return connect( )
 	end
 	return true
@@ -59,12 +59,12 @@ end
 
 addEventHandler( "onResourceStart", resourceRoot,
 	function( )
-		if not mysql_connect then
+		if not dbConnect then
 			if hasObjectPermissionTo( resource, "function.shutdown" ) then
 				shutdown( "MySQL module missing." )
 			end
 			cancelEvent( true, "MySQL module missing." )
-		elseif not hasObjectPermissionTo( resource, "function.mysql_connect" ) then
+		elseif not hasObjectPermissionTo( resource, "function.dbConnect" ) then
 			if hasObjectPermissionTo( resource, "function.shutdown" ) then
 				shutdown( "Insufficient ACL rights for mysql resource." )
 			end
@@ -73,13 +73,11 @@ addEventHandler( "onResourceStart", resourceRoot,
 			if connection then
 				outputDebugString( mysql_error( connection ), 1 )
 			end
-			
+
 			if hasObjectPermissionTo( resource, "function.shutdown" ) then
 				shutdown( "MySQL failed to connect." )
 			end
 			cancelEvent( true, "MySQL failed to connect." )
-		else
-			null = mysql_null( )
 		end
 	end
 )
@@ -87,10 +85,10 @@ addEventHandler( "onResourceStart", resourceRoot,
 addEventHandler( "onResourceStop", resourceRoot,
 	function( )
 		for key, value in pairs( results ) do
-			mysql_free_result( value.r )
+			dbFree( value.r )
 			outputDebugString( "Query not free()'d: " .. value.q, 2 )
 		end
-		
+
 		disconnect( )
 	end
 )
@@ -99,7 +97,7 @@ addEventHandler( "onResourceStop", resourceRoot,
 
 function escape_string( str )
 	if type( str ) == "string" then
-		return mysql_escape_string( connection, str )
+		return dbPrepareString( connection, str )
 	elseif type( str ) == "number" then
 		return tostring( str )
 	end
@@ -107,7 +105,7 @@ end
 
 local function query( str, ... )
 	checkConnection( )
-	
+
 	if ( ... ) then
 		local t = { ... }
 		for k, v in ipairs( t ) do
@@ -115,8 +113,8 @@ local function query( str, ... )
 		end
 		str = str:format( unpack( t ) )
 	end
-	
-	local result = mysql_query( connection, str )
+
+	local result = dbQuery( connection, str )
 	if result then
 		for num = 1, max_results do
 			if not results[ num ] then
@@ -124,7 +122,7 @@ local function query( str, ... )
 				return num
 			end
 		end
-		mysql_free_result( result )
+		dbFree( result )
 		return false, "Unable to allocate result in pool"
 	end
 	return false, mysql_error( connection )
@@ -134,9 +132,9 @@ function query_free( str, ... )
 	if sourceResource == getResourceFromName( "runcode" ) then
 		return false
 	end
-	
+
 	checkConnection( )
-	
+
 	if ( ... ) then
 		local t = { ... }
 		for k, v in ipairs( t ) do
@@ -144,10 +142,10 @@ function query_free( str, ... )
 		end
 		str = str:format( unpack( t ) )
 	end
-	
-	local result = mysql_query( connection, str )
+
+	local result = dbQuery( connection, str )
 	if result then
-		mysql_free_result( result )
+		dbFree( result )
 		return true
 	end
 	return false, mysql_error( connection )
@@ -155,82 +153,7 @@ end
 
 function free_result( result )
 	if results[ result ] then
-		mysql_free_result( results[ result ].r )
+		dbFree( results[ result ].r )
 		results[ result ] = nil
 	end
-end
-
-function query_assoc( str, ... )
-	if sourceResource == getResourceFromName( "runcode" ) then
-		return false
-	end
-	
-	local t = { }
-	local result, error = query( str, ... )
-	if result then
-		for result, row in mysql_rows_assoc( results[ result ].r ) do
-			local num = #t + 1
-			t[ num ] = { }
-			for key, value in pairs( row ) do
-				if value ~= null then
-					t[ num ][ key ] = tonumber( value ) or value
-				end
-			end
-		end
-		free_result( result )
-		return t
-	end
-	return false, error
-end
-
-function query_assoc_single( str, ... )
-	if sourceResource == getResourceFromName( "runcode" ) then
-		return false
-	end
-	
-	local t = { }
-	local result, error = query( str, ... )
-	if result then
-		local row = mysql_fetch_assoc( results[ result ].r )
-		if row then
-			for key, value in pairs( row ) do
-				if value ~= null then
-					t[ key ] = tonumber( value ) or value
-				end
-			end
-			free_result( result )
-			return t
-		end
-		free_result( result )
-		return false
-	end
-	return false, error
-end
-
-function query_insertid( str, ... )
-	if sourceResource == getResourceFromName( "runcode" ) then
-		return false
-	end
-	
-	local result, error = query( str, ... )
-	if result then
-		local id = mysql_insert_id( connection )
-		free_result( result )
-		return id
-	end
-	return false, error
-end
-
-function query_affected_rows( str, ... )
-	if sourceResource == getResourceFromName( "runcode" ) then
-		return false
-	end
-	
-	local result, error = query( str, ... )
-	if result then
-		local rows = mysql_affected_rows( connection )
-		free_result( result )
-		return rows
-	end
-	return false, error
 end

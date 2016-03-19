@@ -23,8 +23,7 @@ addEventHandler( "onResourceStart", resourceRoot,
     setRuleValue( "source", "https://github.com/timonsliepenbeek/cultfiction" )
     setRuleValue( "git-url", "https://github.com/timonsliepenbeek/cultfiction" )
     setRuleValue( "version", "getVersion( )" )
-    setMapName( "Limitless" )
-    )
+    setMapName( "Limitmess" )
   end
 )
 

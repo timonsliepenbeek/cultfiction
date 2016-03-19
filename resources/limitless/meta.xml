@@ -1,4 +1,0 @@
-<meta>
-	<info author="Shahanshah" description="Limitless MTA gamemode" type="gamemode" gamemodes="counterstrike" />
-	<script src="s_limitless.lua" type="server" />
-</meta>
