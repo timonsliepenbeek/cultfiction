@@ -104,6 +104,7 @@ function escape_string( str )
 end
 
 local function query( str, ... )
+
 	checkConnection( )
 
 	if ( ... ) then
@@ -114,21 +115,27 @@ local function query( str, ... )
 		str = str:format( unpack( t ) )
 	end
 
-	local result = dbQuery( connection, str )
-	if result then
-		for num = 1, max_results do
-			if not results[ num ] then
-				results[ num ] = { r = result, q = str }
-				return num
-			end
+	local query = dbQuery( connection, str )
+	if query then
+		local result, nar, liid = dbPoll( query, -1 )
+		if result == nil then
+			dbFree( query )
+		elseif result == false then
+			local ec, em = nar, liid
+			outputServerLog( "dbPoll failed with Error code" .. tostring( ec ) .. " Error Message: " .. tostring( em ) )
+			dbFree( query )
+			return false, em
+		else
+			dbFree( query )
+			return result, nar, liid
 		end
-		dbFree( result )
-		return false, "Unable to allocate result in pool"
+	else
+		outputServerLog( "No MySQL connection." )
 	end
-	return false, mysql_error( connection )
 end
 
 function query_free( str, ... )
+
 	if sourceResource == getResourceFromName( "runcode" ) then
 		return false
 	end
@@ -143,17 +150,32 @@ function query_free( str, ... )
 		str = str:format( unpack( t ) )
 	end
 
-	local result = dbQuery( connection, str )
+	local result, nar, liid = query( str )
 	if result then
-		dbFree( result )
 		return true
 	end
-	return false, mysql_error( connection )
+	return false, nar
 end
 
-function free_result( result )
-	if results[ result ] then
-		dbFree( results[ result ].r )
-		results[ result ] = nil
+function query_assoc( str, ... )
+
+	if sourceResource == getResourceFromName( "runcode" ) then
+		return false
 	end
+
+	local t = { }
+	local result, nar, liid = query( str, ... )
+	if result then
+		for result, row in ipairs( result ) do
+			local num = #t + 1
+			t[ num ] = { }
+			for key, value in pairs( row ) do
+				if value ~= null then
+					t[ num ][ key ] = tonumber( value ) or value
+				end
+			end
+		end
+		return t
+	end
+	return false, nar
 end

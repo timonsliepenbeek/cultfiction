@@ -1,5 +1,5 @@
 <meta>
-	<info author="Shahanshah" description="Limitless MTA gamemode" type="gamemode" />
+	<info author="Shahanshah" description="Limitless MTA gamemode" type="gamemode"/>
 	<script src="s_limitmess.lua" type="server" />
 	<script src="s_login.lua" type="server" />
 </meta>

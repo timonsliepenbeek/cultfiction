@@ -2,7 +2,6 @@ local mysql = exports.sql
 local key = "shah"
 local loginAttempts = { }
 
-
 addCommandHandler( "logmein",
   function( playerSource, commandName, username, password )
     outputChatBox( "1" )
@@ -19,11 +18,13 @@ addEventHandler( getResourceName( resource ) .. ":login", root,
     if loginAttempts[ source ] > 5 then
       outputChatBox( "Too many login attempts. Check back later." )
       if username and password and #username > 0 and #password > 0 then -- If there is something in the parameters
-        local auth = mysql:query_free( "SELECT username, password FROM accounts WHERE username='%s' AND password='%s'", username, hash( "md5", key + password ) ) -- See if that user is in the database and hash the password and see if it matches.
+        local auth, error = mysql:query_free( "SELECT username, password FROM accounts WHERE username='%s' AND password='%s'", username, hash( "md5", key + password ) ) -- See if that user is in the database and hash the password and see if it matches.
         if auth then -- If authorized
-          outputChatBox( )
+          -- What happens if we succesfully login.
+        elseif error then
+          -- What happens if we get an error in the query.
         else
-          outputChatBox( "Wrong username or password!" ) -- Output message
+          -- What happens when either is wrong.
           loginAttempts[ source ] = loginAttempts[ source ] + 1 -- Count login attempts as protection
         end
       end
@@ -33,9 +34,7 @@ addEventHandler( getResourceName( resource ) .. ":login", root,
 
 addCommandHandler( "registerme",
   function( playerSource, commandName, username, password )
-    outputChatBox( "1" )
     if username and password and #username > 0 and #password > 0 then
-      outputChatBox( "2" )
       triggerEvent( getResourceName( resource ) .. ":register", root, username, password )
     end
   end
@@ -44,18 +43,17 @@ addCommandHandler( "registerme",
 addEvent( getResourceName( resource ) .. ":register", true )
 addEventHandler( getResourceName( resource ) .. ":register", root,
   function( username, password )
-    outputChatBox( username )
     if username ~= nil and username ~= "" and password ~= nil and password ~= "" then
-      outputChatBox( "5" )
-      local result = mysql:query_free( "SELECT COUNT(id) AS usercount FROM accounts WHERE username='%s'", username )
-      if not result then
-        outputChatBox( "6" )
-        local registration = mysql:query_free( "INSERT INTO accounts VALUES username='%s', password='%s'", username, hash( "md5", key + password ) )
+      local result, error = mysql:query_assoc( "SELECT COUNT(id) AS usercount FROM accounts WHERE username='%s'", username )
+      if result[ 1 ][ "usercount" ] == 0 then
+        local registration = mysql:query_assoc( "INSERT INTO accounts ( username, password ) VALUES ( '%s', '%s' )", username, hash( "md5", key .. password ) )
         if registration then
-          outputChatBox( "succesfully registered" )
+          -- What happens if the account was registered.
         end
+      elseif error then
+        -- If we get an error message.
       else
-        outputChatBox( "account already exists" )
+        -- What happens if the username is taken.
       end
     end
   end
