@@ -12,3 +12,5 @@ function reloadACL ( source, command )
 	end
 end
 addCommandHandler ( "reloadACL", reloadACL )
+
+-- getAdminLevel

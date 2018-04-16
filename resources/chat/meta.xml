@@ -16,11 +16,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 -->
 
 <meta>
-	<min_mta_version server="1.5.5" />
-	<info author="Shahanshah" description="Limitless MTA admin controls"  />
-	<script src="mysql.lua"/>
-	<script src="layout.lua"/>
+	<info author="Shahanshah" description="Limitless MTA gamemode" type="gamemode"/>
+	<script src="s_states.lua" type="server"/>
 
-	<export function="queryFree" type="server"/>
-	<export function="querySingle" type="server"/>
+  <export function="displayErrorMsg" type="server"/>
+  <export function="displayWarningMsg" type = "server"/>
+  <export function="displayInstructionMsg" type = "server"/>
 </meta>
