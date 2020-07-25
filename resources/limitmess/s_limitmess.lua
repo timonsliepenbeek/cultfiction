@@ -39,3 +39,11 @@ addEventHandler( "onResourceStop", resourceRoot,
 
 -- When a player connects.
   -- Load the login screen for the connected player.
+
+addEventHandler( "onPlayerJoin", getRootElement(),
+  function( )
+    outputChatBox( "test", source, 255, 255, 255, false )
+    logout( source )
+    showLoginScreen( source )
+  end
+)

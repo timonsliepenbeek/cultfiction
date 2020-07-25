@@ -26,6 +26,15 @@
 
 ]]
 
+function showLoginScreen( player )
+  outputChatBox( "showing Login Screen" )
+  setCameraMatrix( 1468.8785400391, -919.25317382813, 100.153465271, 1468.388671875, -918.42474365234, 99.881813049316 )
+  fadeCamera( true )
+end
+
+addEvent( "showLoginScreen", true )
+addEventHandler( "showLoginScreen", localPlayer, showLoginScreen )
+
 -- create login screen
   -- Let's just make sure the player is not logged in by logging him out.
   -- Set windowState to 1

@@ -15,6 +15,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     ]]
 
+local mysql = exports.sql
+local chat = exports.chat
+
 -- Handle character creation.
 function makeCharacter( playerSource, skin, characterName )
   outputChatBox( "1", playerSource )
@@ -50,11 +53,39 @@ function createCharacter( skin, characterName )
     return true
   else
     return false, 1 -- Returns 1 if the charactername was wrong
+  end
 end
 
--- Spawn character into the world.
-function spawn( playerSource, skin, characterName )
-  spawnPlayer( playerSource, 0, 0, 0, 0, skin )
-  setPlayerName( playerSource, characterName )
-  -- Set the player as logged in.
+function getPlayerCharacters( playerSource )
+  local a = getPlayerAccountName( playerSource )
+  if a then
+    local result = mysql:querySingle( "SELECT `account_id` FROM `accounts` WHERE `username`='" .. a .. "'" )
+    outputConsole( result[0] )
+    if result then
+      local id = result
+      outputConsole( tostring( id[ 0 ][ 0 ] ) )
+      result = mysql:querySingle( "SELECT * FROM `characters` WHERE `owner`='" .. id .. "'" )
+      if result then
+        return result
+      else
+        return false
+      end
+    else
+      chat:displayWarningMsg( playerSource, "There was an error querying for characters." )
+    end
+  end
 end
+
+function requestPlayerCharacters( playerSource, commandName )
+  outputChatBox( "Characters:", playerSource )
+  local characters = getPlayerCharacters( playerSource )
+  if characters then
+    for key, character in ipairs( characters ) do
+      outputChatBox( character[ charactername ] )
+    end
+  else
+    chat:displayWarningMsg( playerSource, "You have no characters! Please make a character" )
+  end
+end
+
+addCommandHandler( "characters", requestPlayerCharacters )

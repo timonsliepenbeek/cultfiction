@@ -1,4 +1,5 @@
-resources/*.zip
+resources/**/*.zip
+resources/**/[*]
 editor.conf
 editor_acl.xml
 local.conf

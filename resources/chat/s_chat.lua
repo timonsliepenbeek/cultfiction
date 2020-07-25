@@ -15,6 +15,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     ]]
 
+function chat ()
+  cancelEvent()
+end
+
 -- bind /say to t
 
 -- /me

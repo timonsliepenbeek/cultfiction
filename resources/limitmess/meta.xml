@@ -17,9 +17,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 <meta>
 	<info author="Shahanshah" description="Limitless MTA gamemode" type="gamemode"/>
-	<script src="s_charactercreation.lua" type="server" />
-	<script src="s_limitmess.lua" type="server" />
+
 	<script src="s_login.lua" type="server" />
+	<script src="s_charactercreation.lua" type="server" />
+	<script src="s_loginscreen.lua" type="server" />
+	<script src="s_worlds.lua" type="server" />
+	<script src="s_limitmess.lua" type="server" />
+
+	<script src="c_charactercreation.lua" type="client" />
+	<script src="c_loginscreen.lua" type="client" />
+
 
 	<export function="isLoggedIn" type="server" />
 	<export function="logout" type="server" />

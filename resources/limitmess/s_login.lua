@@ -17,9 +17,11 @@
 
 local mysql = exports.sql
 local chat = exports.chat
+
 local key = "shah"
 local loginAttempts = { }
 local loggedPlayers = { }
+local players = { }
 
 -- Handle registration attempt.
 function register( playerSource, username, password )
@@ -87,7 +89,7 @@ end
 -- event:attemptLogin
 
 -- Log a player out.
-function logout( player )
+function logout( playerSource )
   loggedPlayers[ playerSource ] = false
   -- despawn the player's ped
   -- End the session in analytics.
@@ -97,6 +99,8 @@ end
 function createSession( playerSource, username )
   outputChatBox( "logged you in", playerSource )
   loggedPlayers[ playerSource ] = true
+  players[ playerSource ] = { accountName = username }
+  outputChatBox( players[ playerSource ].accountName, playerSource )
   -- Update last login information and whatnot.
 end
 
@@ -108,3 +112,26 @@ function isLoggedIn( player )
     return false
   end
 end
+
+-- Just returns the name of the account of the specified player.
+function getPlayerAccountName( playerSource )
+  if loggedPlayers[ playerSource ] then
+    if players[ playerSource ] then
+      return players[ playerSource ].accountName
+    else
+      return false
+    end
+  end
+end
+
+
+function logmein ( playerSource, commandName, username, password )
+  login( playerSource, username, password )
+end
+
+function registerme( playerSource, commandName, username, password )
+  register( playerSource, username, password )
+end
+
+addCommandHandler( "logmein", logmein )
+addCommandHandler( "registerme", registerme )
